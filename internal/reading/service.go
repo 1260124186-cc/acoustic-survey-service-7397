@@ -2,6 +2,7 @@ package reading
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"example.com/acoustic-survey-service/internal/alert"
@@ -39,7 +40,6 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	if input.CapturedAt != nil {
 		captured = input.CapturedAt.UTC()
 	}
-	prior := latest(s.store.Readings(surveyID))
 	value := model.Reading{
 		ID:           fmt.Sprintf("%s-%03d", surveyID, parent.ReadingCount+1),
 		SurveyID:     surveyID,
@@ -54,7 +54,11 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	if err := s.store.AppendReading(value); err != nil {
 		return model.Reading{}, err
 	}
-	s.alerts.Evaluate(band, value, prior)
+	// 读数可能因测线设备断链补传而乱序到达，相邻跳变告警必须按采样时间
+	// 而非网络抵达顺序判断，因此每次到达都按 CapturedAt 重排后整体重建。
+	chronological := sortedByCapture(s.store.Readings(surveyID))
+	s.alerts.Evaluate(band, value)
+	s.alerts.ReevaluateNeighbors(chronological)
 	return value, nil
 }
 
@@ -76,10 +80,12 @@ func IsUsable(value model.Reading) bool {
 	return value.QualityScore >= 70
 }
 
-func latest(values []model.Reading) *model.Reading {
-	if len(values) == 0 {
-		return nil
-	}
-	value := values[len(values)-1]
-	return &value
+// sortedByCapture 按采样时间升序返回读数副本，采样时间相同的读数保持稳定顺序。
+func sortedByCapture(values []model.Reading) []model.Reading {
+	result := make([]model.Reading, len(values))
+	copy(result, values)
+	sort.SliceStable(result, func(left int, right int) bool {
+		return result[left].CapturedAt.Before(result[right].CapturedAt)
+	})
+	return result
 }
