@@ -132,14 +132,6 @@ func ValidateReading(input ReadingInput) error {
 	return nil
 }
 
-// UsableQualityThreshold 是读数被判定为可用的最低质量分。
-const UsableQualityThreshold = 70
-
-// IsUsableReading 判断读数是否可用于结束测线与摘要统计。
-func IsUsableReading(value Reading) bool {
-	return value.QualityScore >= UsableQualityThreshold
-}
-
 func Round(value float64, places int) float64 {
 	factor := math.Pow10(places)
 	return math.Round(value*factor) / factor
