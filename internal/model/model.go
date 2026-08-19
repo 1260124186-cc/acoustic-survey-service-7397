@@ -65,6 +65,8 @@ type Alert struct {
 	Resolved  bool          `json:"resolved"`
 }
 
+func (a Alert) BlocksCompletion() bool { return !a.Resolved && a.Severity == AlertCritical }
+
 type Band struct {
 	ID          string  `json:"id"`
 	Label       string  `json:"label"`

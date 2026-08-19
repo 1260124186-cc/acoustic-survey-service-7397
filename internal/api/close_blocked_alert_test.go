@@ -24,16 +24,8 @@ func TestCloseRejectsSurveyWithBlockingAlert(t *testing.T) {
 		handler.ServeHTTP(recorder, httptest.NewRequest(method, path, bytes.NewBufferString(body)))
 		return recorder
 	}
-	if response := request(http.MethodPost, "/v1/surveys", `{"id":"blocked-close","area":"bay","band":"coastal-38khz"}`); response.Code != http.StatusCreated {
-		t.Fatalf("create status = %d", response.Code)
-	}
-	if response := request(http.MethodPost, "/v1/surveys/blocked-close/activate", ""); response.Code != http.StatusOK {
-		t.Fatalf("activate status = %d", response.Code)
-	}
-	if response := request(http.MethodPost, "/v1/surveys/blocked-close/readings", `{"frequency_hz":42000,"echo_db":-48,"noise_db":-70,"depth_m":30}`); response.Code != http.StatusCreated {
-		t.Fatalf("reading status = %d", response.Code)
-	}
-	if response := request(http.MethodPost, "/v1/surveys/blocked-close/close", ""); response.Code != http.StatusBadRequest {
-		t.Fatalf("close status = %d, want %d", response.Code, http.StatusBadRequest)
-	}
+	if response := request(http.MethodPost, "/v1/surveys", `{"id":"blocked-close","area":"bay","band":"coastal-38khz"}`); response.Code != http.StatusCreated { t.Fatalf("create status = %d", response.Code) }
+	if response := request(http.MethodPost, "/v1/surveys/blocked-close/activate", ""); response.Code != http.StatusOK { t.Fatalf("activate status = %d", response.Code) }
+	if response := request(http.MethodPost, "/v1/surveys/blocked-close/readings", `{"frequency_hz":42000,"echo_db":-48,"noise_db":-70,"depth_m":30}`); response.Code != http.StatusCreated { t.Fatalf("reading status = %d", response.Code) }
+	if response := request(http.MethodPost, "/v1/surveys/blocked-close/close", ""); response.Code != http.StatusBadRequest { t.Fatalf("close status = %d", response.Code) }
 }

@@ -107,6 +107,10 @@ func (s *Server) createReading(response http.ResponseWriter, request *http.Reque
 }
 
 func (s *Server) closeSurvey(response http.ResponseWriter, request *http.Request) {
+	if s.alerts.BlockingCount(id(request)) > 0 {
+		writeError(response, model.NewError("blocking_alert", "surveys with unresolved critical alerts cannot be closed"))
+		return
+	}
 	value, err := s.surveys.Close(id(request))
 	if err != nil {
 		writeError(response, err)

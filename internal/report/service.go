@@ -29,6 +29,9 @@ func (s *Service) Summary(store *survey.Store, alerts *alert.Service, surveyID s
 		OpenAlerts:    alerts.OpenCount(surveyID),
 		BandCounts:    make(map[string]int),
 	}
+	if alerts.BlockingCount(surveyID) > 0 {
+		summary.State = model.Active
+	}
 	if len(values) == 0 {
 		return summary, nil
 	}

@@ -55,6 +55,14 @@ func (s *Service) OpenCount(surveyID string) int {
 	return count
 }
 
+func (s *Service) BlockingCount(surveyID string) int {
+	count := 0
+	for _, value := range s.List(surveyID) {
+		if value.BlocksCompletion() { count++ }
+	}
+	return count
+}
+
 func (s *Service) newAlert(reading model.Reading, rule string, severity model.AlertSeverity, message string) model.Alert {
 	return model.Alert{
 		ID:        reading.ID + ":" + rule,
