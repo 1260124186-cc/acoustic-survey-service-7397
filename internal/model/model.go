@@ -114,22 +114,26 @@ func ValidateSurvey(id string, area string, band string) error {
 }
 
 func ValidateReading(input ReadingInput) error {
-	if input.FrequencyHz <= 0 || math.IsNaN(input.FrequencyHz) {
+	if input.FrequencyHz <= 0 || !IsFinite(input.FrequencyHz) {
 		return NewError("invalid_reading", "frequency must be positive")
 	}
-	if input.DepthM <= 0 || math.IsNaN(input.DepthM) {
+	if input.DepthM <= 0 || !IsFinite(input.DepthM) {
 		return NewError("invalid_reading", "depth must be positive")
 	}
-	if input.EchoDB < -130 || input.EchoDB > 20 {
+	if !IsFinite(input.EchoDB) || input.EchoDB < -130 || input.EchoDB > 20 {
 		return NewError("invalid_reading", "echo level is outside the supported range")
 	}
-	if input.NoiseDB < -150 || input.NoiseDB > 20 {
+	if !IsFinite(input.NoiseDB) || input.NoiseDB < -150 || input.NoiseDB > 20 {
 		return NewError("invalid_reading", "noise level is outside the supported range")
 	}
 	if input.NoiseDB > input.EchoDB {
 		return NewError("invalid_reading", "noise level cannot exceed echo level")
 	}
 	return nil
+}
+
+func IsFinite(value float64) bool {
+	return !math.IsNaN(value) && !math.IsInf(value, 0)
 }
 
 func Round(value float64, places int) float64 {

@@ -40,6 +40,10 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 		captured = input.CapturedAt.UTC()
 	}
 	prior := latest(s.store.Readings(surveyID))
+	normalized := catalog.NormalizeEcho(band, input.EchoDB, input.DepthM)
+	if !model.IsFinite(normalized) {
+		return model.Reading{}, model.NewError("invalid_reading", "normalized echo must be finite")
+	}
 	value := model.Reading{
 		ID:           fmt.Sprintf("%s-%03d", surveyID, parent.ReadingCount+1),
 		SurveyID:     surveyID,
@@ -47,7 +51,7 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 		EchoDB:       input.EchoDB,
 		NoiseDB:      input.NoiseDB,
 		DepthM:       input.DepthM,
-		NormalizedDB: catalog.NormalizeEcho(band, input.EchoDB, input.DepthM),
+		NormalizedDB: normalized,
 		QualityScore: qualityScore(band, input),
 		CapturedAt:   captured,
 	}

@@ -39,6 +39,9 @@ func (c *Catalog) List() []model.Band {
 }
 
 func NormalizeEcho(band model.Band, echoDB float64, depthM float64) float64 {
+	if !model.IsFinite(echoDB) || !model.IsFinite(depthM) {
+		return 0
+	}
 	spreading := 20 * math.Log10(math.Max(depthM, 1))
 	return model.Round(echoDB+spreading-band.ReferenceDB, 2)
 }
