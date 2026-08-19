@@ -19,7 +19,7 @@ func NewService() *Service {
 
 func (s *Service) Evaluate(band model.Band, reading model.Reading, previous *model.Reading) {
 	notices := make([]model.Alert, 0, 3)
-	if !catalog.InCalibrationRange(band, reading.FrequencyHz) {
+	if !band.ContainsFrequency(reading.FrequencyHz) {
 		notices = append(notices, s.newAlert(reading, "frequency_outside_calibration", model.AlertCritical, fmt.Sprintf("frequency %.0f Hz is outside the calibration interval", reading.FrequencyHz)))
 	}
 	if catalog.SignalToNoise(reading.EchoDB, reading.NoiseDB) < band.MinimumSNR {

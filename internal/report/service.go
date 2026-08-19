@@ -58,7 +58,7 @@ func (s *Service) Summary(store *survey.Store, alerts *alert.Service, surveyID s
 
 func (s *Service) frequencyBand(frequency float64) string {
 	for _, band := range s.catalog.List() {
-		if catalog.InCalibrationRange(band, frequency) {
+		if band.ContainsFrequency(frequency) {
 			return band.ID
 		}
 	}

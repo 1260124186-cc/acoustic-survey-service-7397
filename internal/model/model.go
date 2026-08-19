@@ -75,6 +75,10 @@ type Band struct {
 	MinimumSNR  float64 `json:"minimum_snr"`
 }
 
+func (b Band) ContainsFrequency(frequency float64) bool {
+	return frequency >= b.MinimumHz && frequency <= b.MaximumHz
+}
+
 type Summary struct {
 	SurveyID            string         `json:"survey_id"`
 	State               SurveyState    `json:"state"`

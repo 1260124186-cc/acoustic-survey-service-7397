@@ -60,7 +60,7 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 
 func qualityScore(band model.Band, input model.ReadingInput) int {
 	score := 100
-	if !catalog.InCalibrationRange(band, input.FrequencyHz) {
+	if !band.ContainsFrequency(input.FrequencyHz) {
 		score -= 45
 	}
 	if catalog.SignalToNoise(input.EchoDB, input.NoiseDB) < band.MinimumSNR {
