@@ -27,7 +27,7 @@ type Survey struct {
 }
 
 func (s Survey) CanAcceptReadings() bool {
-	return s.State == Active || s.State == Closed
+	return s.State == Active
 }
 
 func (s Survey) CanClose() bool {

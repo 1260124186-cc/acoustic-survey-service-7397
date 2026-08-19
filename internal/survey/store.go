@@ -70,7 +70,7 @@ func (s *Store) AppendReading(value model.Reading) error {
 	if !exists {
 		return model.NewError("not_found", "survey %q was not found", value.SurveyID)
 	}
-	if survey.State == model.Draft {
+	if survey.State != model.Active {
 		return model.NewError("invalid_state", "readings can only be added to active surveys")
 	}
 	s.readings[value.SurveyID] = append(s.readings[value.SurveyID], value)
