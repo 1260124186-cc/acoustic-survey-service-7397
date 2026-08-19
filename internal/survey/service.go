@@ -70,6 +70,7 @@ func (s *Service) Close(id string) (model.Survey, error) {
 	}
 	now := time.Now().UTC()
 	value.State = model.Closed
+	value.ReadingCount = 0
 	value.ClosedAt = &now
 	if err := s.store.Save(value); err != nil {
 		return model.Survey{}, err
