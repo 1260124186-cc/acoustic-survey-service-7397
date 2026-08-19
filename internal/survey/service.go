@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"example.com/acoustic-survey-service/internal/alert"
 	"example.com/acoustic-survey-service/internal/catalog"
 	"example.com/acoustic-survey-service/internal/model"
 )
@@ -11,10 +12,17 @@ import (
 type Service struct {
 	store   *Store
 	catalog *catalog.Catalog
+	alerts  *alert.Service
 }
 
 func NewService(store *Store, catalog *catalog.Catalog) *Service {
 	return &Service{store: store, catalog: catalog}
+}
+
+// WithAlerts 注入告警服务，用于在结束测线时阻断未解决的严重告警。
+func (s *Service) WithAlerts(alerts *alert.Service) *Service {
+	s.alerts = alerts
+	return s
 }
 
 func (s *Service) Create(id string, area string, bandID string) (model.Survey, error) {
@@ -67,6 +75,9 @@ func (s *Service) Close(id string) (model.Survey, error) {
 	}
 	if value.ReadingCount == 0 {
 		return model.Survey{}, model.NewError("invalid_state", "an active survey needs at least one reading before closing")
+	}
+	if s.alerts != nil && s.alerts.HasOpenCritical(id) {
+		return model.Survey{}, model.NewError("unresolved_alerts", "cannot close a survey with unresolved critical alerts")
 	}
 	now := time.Now().UTC()
 	value.State = model.Closed

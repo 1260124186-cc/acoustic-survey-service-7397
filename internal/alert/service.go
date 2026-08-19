@@ -55,6 +55,17 @@ func (s *Service) OpenCount(surveyID string) int {
 	return count
 }
 
+// HasOpenCritical 报告测线是否存在未解决的严重告警。
+// 严重告警阻断测线结束，普通告警不阻断。
+func (s *Service) HasOpenCritical(surveyID string) bool {
+	for _, value := range s.List(surveyID) {
+		if value.Severity == model.AlertCritical && !value.Resolved {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Service) newAlert(reading model.Reading, rule string, severity model.AlertSeverity, message string) model.Alert {
 	return model.Alert{
 		ID:        reading.ID + ":" + rule,

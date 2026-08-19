@@ -30,6 +30,8 @@ type createSurveyRequest struct {
 }
 
 func NewServer(surveys *survey.Service, readings *reading.Service, alerts *alert.Service, reports *report.Service, catalog *catalog.Catalog) *Server {
+	// 将告警服务注入测线服务，使结束测线时可阻断未解决的严重告警。
+	surveys.WithAlerts(alerts)
 	return &Server{surveys: surveys, readings: readings, alerts: alerts, reports: reports, catalog: catalog}
 }
 
