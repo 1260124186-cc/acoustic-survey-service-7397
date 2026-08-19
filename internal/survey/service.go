@@ -62,7 +62,7 @@ func (s *Service) Close(id string) (model.Survey, error) {
 	if err != nil {
 		return model.Survey{}, err
 	}
-	if value.State != model.Active {
+	if !value.CanClose() {
 		return model.Survey{}, model.NewError("invalid_state", "only active surveys can be closed")
 	}
 	if value.ReadingCount == 0 {

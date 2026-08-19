@@ -26,6 +26,14 @@ type Survey struct {
 	ReadingCount int         `json:"reading_count"`
 }
 
+func (s Survey) CanAcceptReadings() bool {
+	return s.State == Active || s.State == Closed
+}
+
+func (s Survey) CanClose() bool {
+	return s.State == Active || s.State == Closed
+}
+
 type ReadingInput struct {
 	FrequencyHz float64    `json:"frequency_hz"`
 	EchoDB      float64    `json:"echo_db"`

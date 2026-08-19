@@ -28,7 +28,7 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	if err != nil {
 		return model.Reading{}, err
 	}
-	if parent.State != model.Active {
+	if !parent.CanAcceptReadings() {
 		return model.Reading{}, model.NewError("invalid_state", "readings can only be added to active surveys")
 	}
 	band, ok := s.catalog.Find(parent.Band)
