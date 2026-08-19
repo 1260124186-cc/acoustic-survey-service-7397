@@ -32,6 +32,7 @@ func (s *Service) Summary(store *survey.Store, alerts *alert.Service, surveyID s
 	if len(values) == 0 {
 		return summary, nil
 	}
+	target, hasTarget := s.catalog.Find(parent.Band)
 	minimumDepth := values[0].DepthM
 	maximumDepth := values[0].DepthM
 	normalizedTotal := 0.0
@@ -42,7 +43,7 @@ func (s *Service) Summary(store *survey.Store, alerts *alert.Service, surveyID s
 		if value.DepthM > maximumDepth {
 			maximumDepth = value.DepthM
 		}
-		summary.BandCounts[s.frequencyBand(value.FrequencyHz)]++
+		summary.BandCounts[s.frequencyBand(value.FrequencyHz, target, hasTarget)]++
 		if reading.IsUsable(value) {
 			summary.ValidReadings++
 			normalizedTotal += value.NormalizedDB
@@ -56,7 +57,12 @@ func (s *Service) Summary(store *survey.Store, alerts *alert.Service, surveyID s
 	return summary, nil
 }
 
-func (s *Service) frequencyBand(frequency float64) string {
+func (s *Service) frequencyBand(frequency float64, target model.Band, hasTarget bool) string {
+	// 读数落在测线目标频段的校准范围内时，按目标频段归档；
+	// 避免目录中重叠的 sector 窗口把统计抢走。
+	if hasTarget && catalog.InCalibrationRange(target, frequency) {
+		return target.ID
+	}
 	for _, band := range s.catalog.List() {
 		if catalog.InCalibrationRange(band, frequency) {
 			return band.ID
