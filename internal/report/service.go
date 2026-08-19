@@ -22,6 +22,9 @@ func (s *Service) Summary(store *survey.Store, alerts *alert.Service, surveyID s
 		return model.Summary{}, err
 	}
 	values := store.Readings(surveyID)
+	if parent.ReadingCount != len(values) {
+		return model.Summary{}, model.NewError("inconsistent_survey", "survey %q has mismatched reading count", surveyID)
+	}
 	summary := model.Summary{
 		SurveyID:      parent.ID,
 		State:         parent.State,

@@ -146,3 +146,5 @@ func ClampInt(value int, minimum int, maximum int) int {
 	}
 	return value
 }
+
+func (s Survey) HasReadings() bool { return s.ReadingCount > 0 }

@@ -3,6 +3,7 @@ package survey
 import (
 	"sort"
 	"sync"
+	"time"
 
 	"example.com/acoustic-survey-service/internal/model"
 )
@@ -83,4 +84,24 @@ func (s *Store) Readings(id string) []model.Reading {
 	result := make([]model.Reading, len(source))
 	copy(result, source)
 	return result
+}
+
+func (s *Store) Close(id string, closedAt time.Time) (model.Survey, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	value, exists := s.surveys[id]
+	if !exists {
+		return model.Survey{}, model.NewError("not_found", "survey %q was not found", id)
+	}
+	if value.State != model.Active {
+		return model.Survey{}, model.NewError("invalid_state", "only active surveys can be closed")
+	}
+	value.ReadingCount = len(s.readings[id])
+	if !value.HasReadings() {
+		return model.Survey{}, model.NewError("invalid_state", "an active survey needs at least one reading before closing")
+	}
+	value.State = model.Closed
+	value.ClosedAt = &closedAt
+	s.surveys[id] = value
+	return value, nil
 }
