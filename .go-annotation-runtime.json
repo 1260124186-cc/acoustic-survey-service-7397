@@ -1,0 +1,55 @@
+{
+  "shape": "backend",
+  "service": {
+    "command": "go run ./cmd/acousticd",
+    "startup_timeout_seconds": 30,
+    "health": {
+      "url": "http://127.0.0.1:18087/health",
+      "method": "GET",
+      "status": 200,
+      "contains": "ok"
+    },
+    "api": {
+      "url": "http://127.0.0.1:18087/v1/bands",
+      "method": "GET",
+      "status": 200,
+      "contains": "coastal-38khz"
+    }
+  },
+  "workflow_checks": [
+    {
+      "workflow_id": "create-survey",
+      "url": "http://127.0.0.1:18087/v1/surveys",
+      "method": "POST",
+      "status": 201,
+      "body": "{\"id\":\"runtime-line\",\"area\":\"harbor-edge\",\"band\":\"coastal-38khz\"}",
+      "contains": "\"state\":\"draft\"",
+      "timeout_seconds": 20
+    },
+    {
+      "workflow_id": "activate-survey",
+      "url": "http://127.0.0.1:18087/v1/surveys/runtime-line/activate",
+      "method": "POST",
+      "status": 200,
+      "contains": "\"state\":\"active\"",
+      "timeout_seconds": 20
+    },
+    {
+      "workflow_id": "record-reading",
+      "url": "http://127.0.0.1:18087/v1/surveys/runtime-line/readings",
+      "method": "POST",
+      "status": 201,
+      "body": "{\"frequency_hz\":38000,\"echo_db\":-48.5,\"noise_db\":-72.0,\"depth_m\":35}",
+      "contains": "\"quality_score\"",
+      "timeout_seconds": 20
+    },
+    {
+      "workflow_id": "close-survey",
+      "url": "http://127.0.0.1:18087/v1/surveys/runtime-line/close",
+      "method": "POST",
+      "status": 200,
+      "contains": "\"state\":\"closed\"",
+      "timeout_seconds": 20
+    }
+  ]
+}
