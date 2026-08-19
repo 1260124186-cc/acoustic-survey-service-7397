@@ -39,7 +39,6 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	if input.CapturedAt != nil {
 		captured = input.CapturedAt.UTC()
 	}
-	prior := latest(s.store.Readings(surveyID))
 	value := model.Reading{
 		ID:           fmt.Sprintf("%s-%03d", surveyID, parent.ReadingCount+1),
 		SurveyID:     surveyID,
@@ -54,7 +53,7 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	if err := s.store.AppendReading(value); err != nil {
 		return model.Reading{}, err
 	}
-	s.alerts.Evaluate(band, value, prior)
+	s.alerts.Reevaluate(band, s.store.ReadingsByCaptureTime(surveyID))
 	return value, nil
 }
 
@@ -74,12 +73,4 @@ func qualityScore(band model.Band, input model.ReadingInput) int {
 
 func IsUsable(value model.Reading) bool {
 	return value.QualityScore >= 70
-}
-
-func latest(values []model.Reading) *model.Reading {
-	if len(values) == 0 {
-		return nil
-	}
-	value := values[len(values)-1]
-	return &value
 }

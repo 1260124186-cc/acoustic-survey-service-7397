@@ -146,3 +146,10 @@ func ClampInt(value int, minimum int, maximum int) int {
 	}
 	return value
 }
+
+func ReadingCapturedBefore(left Reading, right Reading) bool {
+	if left.CapturedAt.Equal(right.CapturedAt) {
+		return left.ID < right.ID
+	}
+	return left.CapturedAt.Before(right.CapturedAt)
+}

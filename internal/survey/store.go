@@ -84,3 +84,11 @@ func (s *Store) Readings(id string) []model.Reading {
 	copy(result, source)
 	return result
 }
+
+func (s *Store) ReadingsByCaptureTime(id string) []model.Reading {
+	result := s.Readings(id)
+	sort.SliceStable(result, func(left int, right int) bool {
+		return model.ReadingCapturedBefore(result[left], result[right])
+	})
+	return result
+}

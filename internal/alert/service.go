@@ -17,7 +17,25 @@ func NewService() *Service {
 	return &Service{alerts: make(map[string][]model.Alert)}
 }
 
-func (s *Service) Evaluate(band model.Band, reading model.Reading, previous *model.Reading) {
+func (s *Service) Reevaluate(band model.Band, readings []model.Reading) {
+	notices := make([]model.Alert, 0, len(readings))
+	for index, reading := range readings {
+		var previous *model.Reading
+		if index > 0 {
+			value := readings[index-1]
+			previous = &value
+		}
+		notices = append(notices, s.evaluate(band, reading, previous)...)
+	}
+	if len(readings) == 0 {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.alerts[readings[0].SurveyID] = notices
+}
+
+func (s *Service) evaluate(band model.Band, reading model.Reading, previous *model.Reading) []model.Alert {
 	notices := make([]model.Alert, 0, 3)
 	if !catalog.InCalibrationRange(band, reading.FrequencyHz) {
 		notices = append(notices, s.newAlert(reading, "frequency_outside_calibration", model.AlertCritical, fmt.Sprintf("frequency %.0f Hz is outside the calibration interval", reading.FrequencyHz)))
@@ -28,9 +46,7 @@ func (s *Service) Evaluate(band model.Band, reading model.Reading, previous *mod
 	if previous != nil && absolute(reading.NormalizedDB-previous.NormalizedDB) > 18 {
 		notices = append(notices, s.newAlert(reading, "abrupt_normalized_change", model.AlertWarning, "normalized echo changed abruptly from the prior reading"))
 	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.alerts[reading.SurveyID] = append(s.alerts[reading.SurveyID], notices...)
+	return notices
 }
 
 func (s *Service) List(surveyID string) []model.Alert {
