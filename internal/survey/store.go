@@ -3,6 +3,7 @@ package survey
 import (
 	"sort"
 	"sync"
+	"time"
 
 	"example.com/acoustic-survey-service/internal/model"
 )
@@ -83,4 +84,20 @@ func (s *Store) Readings(id string) []model.Reading {
 	result := make([]model.Reading, len(source))
 	copy(result, source)
 	return result
+}
+
+func (s *Store) PreviousReading(id string, capturedAt time.Time) *model.Reading {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var previous *model.Reading
+	for _, value := range s.readings[id] {
+		if !value.CapturedAt.Before(capturedAt) {
+			continue
+		}
+		if previous == nil || previous.CapturedBefore(value) {
+			copy := value
+			previous = &copy
+		}
+	}
+	return previous
 }

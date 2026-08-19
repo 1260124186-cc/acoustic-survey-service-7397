@@ -39,7 +39,7 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	if input.CapturedAt != nil {
 		captured = input.CapturedAt.UTC()
 	}
-	prior := latest(s.store.Readings(surveyID))
+	prior := s.store.PreviousReading(surveyID, captured)
 	value := model.Reading{
 		ID:           fmt.Sprintf("%s-%03d", surveyID, parent.ReadingCount+1),
 		SurveyID:     surveyID,

@@ -25,7 +25,7 @@ func (s *Service) Evaluate(band model.Band, reading model.Reading, previous *mod
 	if catalog.SignalToNoise(reading.EchoDB, reading.NoiseDB) < band.MinimumSNR {
 		notices = append(notices, s.newAlert(reading, "low_signal_to_noise", model.AlertWarning, "signal-to-noise ratio is below the band threshold"))
 	}
-	if previous != nil && absolute(reading.NormalizedDB-previous.NormalizedDB) > 18 {
+	if previous != nil && previous.CapturedBefore(reading) && absolute(reading.NormalizedDB-previous.NormalizedDB) > 18 {
 		notices = append(notices, s.newAlert(reading, "abrupt_normalized_change", model.AlertWarning, "normalized echo changed abruptly from the prior reading"))
 	}
 	s.mu.Lock()

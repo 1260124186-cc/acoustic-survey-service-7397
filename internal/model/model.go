@@ -46,6 +46,10 @@ type Reading struct {
 	CapturedAt   time.Time `json:"captured_at"`
 }
 
+func (r Reading) CapturedBefore(other Reading) bool {
+	return r.CapturedAt.Before(other.CapturedAt)
+}
+
 type AlertSeverity string
 
 const (
