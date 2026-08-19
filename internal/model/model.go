@@ -27,6 +27,7 @@ type Survey struct {
 }
 
 type ReadingInput struct {
+	CaptureID   string     `json:"capture_id,omitempty"`
 	FrequencyHz float64    `json:"frequency_hz"`
 	EchoDB      float64    `json:"echo_db"`
 	NoiseDB     float64    `json:"noise_db"`
@@ -37,6 +38,7 @@ type ReadingInput struct {
 type Reading struct {
 	ID           string    `json:"id"`
 	SurveyID     string    `json:"survey_id"`
+	CaptureID    string    `json:"capture_id,omitempty"`
 	FrequencyHz  float64   `json:"frequency_hz"`
 	EchoDB       float64   `json:"echo_db"`
 	NoiseDB      float64   `json:"noise_db"`

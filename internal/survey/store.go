@@ -11,12 +11,14 @@ type Store struct {
 	mu       sync.RWMutex
 	surveys  map[string]model.Survey
 	readings map[string][]model.Reading
+	captures map[string]model.Reading
 }
 
 func NewStore() *Store {
 	return &Store{
 		surveys:  make(map[string]model.Survey),
 		readings: make(map[string][]model.Reading),
+		captures: make(map[string]model.Reading),
 	}
 }
 
@@ -71,9 +73,19 @@ func (s *Store) AppendReading(value model.Reading) error {
 		return model.NewError("not_found", "survey %q was not found", value.SurveyID)
 	}
 	s.readings[value.SurveyID] = append(s.readings[value.SurveyID], value)
+	if value.CaptureID != "" {
+		s.captures[value.SurveyID+"\x00"+value.CaptureID] = value
+	}
 	survey.ReadingCount = len(s.readings[value.SurveyID])
 	s.surveys[value.SurveyID] = survey
 	return nil
+}
+
+func (s *Store) FindReadingByCaptureID(surveyID string, captureID string) (model.Reading, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	value, ok := s.captures[surveyID+"\x00"+captureID]
+	return value, ok
 }
 
 func (s *Store) Readings(id string) []model.Reading {

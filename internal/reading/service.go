@@ -31,6 +31,11 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	if parent.State != model.Active {
 		return model.Reading{}, model.NewError("invalid_state", "readings can only be added to active surveys")
 	}
+	if input.CaptureID != "" {
+		if existing, found := s.store.FindReadingByCaptureID(surveyID, input.CaptureID); found {
+			return existing, nil
+		}
+	}
 	band, ok := s.catalog.Find(parent.Band)
 	if !ok {
 		return model.Reading{}, model.NewError("invalid_band", "survey band %q is unavailable", parent.Band)
@@ -43,6 +48,7 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	value := model.Reading{
 		ID:           fmt.Sprintf("%s-%03d", surveyID, parent.ReadingCount+1),
 		SurveyID:     surveyID,
+		CaptureID:    input.CaptureID,
 		FrequencyHz:  input.FrequencyHz,
 		EchoDB:       input.EchoDB,
 		NoiseDB:      input.NoiseDB,

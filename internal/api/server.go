@@ -98,6 +98,9 @@ func (s *Server) createReading(response http.ResponseWriter, request *http.Reque
 		writeJSON(response, http.StatusBadRequest, model.Error{Code: "invalid_json", Message: "request body must be valid JSON"})
 		return
 	}
+	if body.CaptureID == "" {
+		body.CaptureID = strings.TrimSpace(request.Header.Get("X-Capture-ID"))
+	}
 	value, err := s.readings.Add(id(request), body)
 	if err != nil {
 		writeError(response, err)
