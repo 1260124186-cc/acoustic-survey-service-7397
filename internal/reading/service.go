@@ -40,6 +40,7 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 		captured = input.CapturedAt.UTC()
 	}
 	prior := latest(s.store.Readings(surveyID))
+	quality, usable := catalog.AssessReading(band, input)
 	value := model.Reading{
 		ID:           fmt.Sprintf("%s-%03d", surveyID, parent.ReadingCount+1),
 		SurveyID:     surveyID,
@@ -48,7 +49,8 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 		NoiseDB:      input.NoiseDB,
 		DepthM:       input.DepthM,
 		NormalizedDB: catalog.NormalizeEcho(band, input.EchoDB, input.DepthM),
-		QualityScore: qualityScore(band, input),
+		QualityScore: quality,
+		Usable:       usable,
 		CapturedAt:   captured,
 	}
 	if err := s.store.AppendReading(value); err != nil {
@@ -58,22 +60,8 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	return value, nil
 }
 
-func qualityScore(band model.Band, input model.ReadingInput) int {
-	score := 100
-	if !catalog.InCalibrationRange(band, input.FrequencyHz) {
-		score -= 45
-	}
-	if catalog.SignalToNoise(input.EchoDB, input.NoiseDB) < band.MinimumSNR {
-		score -= 30
-	}
-	if input.DepthM > 500 {
-		score -= 10
-	}
-	return model.ClampInt(score, 0, 100)
-}
-
 func IsUsable(value model.Reading) bool {
-	return value.QualityScore >= 70
+	return value.Usable
 }
 
 func latest(values []model.Reading) *model.Reading {

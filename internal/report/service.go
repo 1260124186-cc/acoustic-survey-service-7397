@@ -4,7 +4,6 @@ import (
 	"example.com/acoustic-survey-service/internal/alert"
 	"example.com/acoustic-survey-service/internal/catalog"
 	"example.com/acoustic-survey-service/internal/model"
-	"example.com/acoustic-survey-service/internal/reading"
 	"example.com/acoustic-survey-service/internal/survey"
 )
 
@@ -43,7 +42,7 @@ func (s *Service) Summary(store *survey.Store, alerts *alert.Service, surveyID s
 			maximumDepth = value.DepthM
 		}
 		summary.BandCounts[s.frequencyBand(value.FrequencyHz)]++
-		if reading.IsUsable(value) {
+		if value.Usable {
 			summary.ValidReadings++
 			normalizedTotal += value.NormalizedDB
 		}

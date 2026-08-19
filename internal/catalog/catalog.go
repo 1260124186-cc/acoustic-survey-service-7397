@@ -51,6 +51,22 @@ func SignalToNoise(echoDB float64, noiseDB float64) float64 {
 	return model.Round(echoDB-noiseDB, 2)
 }
 
+func AssessReading(band model.Band, input model.ReadingInput) (int, bool) {
+	score := 100
+	inCalibration := InCalibrationRange(band, input.FrequencyHz)
+	adequateSignal := SignalToNoise(input.EchoDB, input.NoiseDB) >= band.MinimumSNR
+	if !inCalibration {
+		score -= 45
+	}
+	if !adequateSignal {
+		score -= 30
+	}
+	if input.DepthM > 500 {
+		score -= 10
+	}
+	return model.ClampInt(score, 0, 100), inCalibration && adequateSignal
+}
+
 func coreBands() []model.Band {
 	return []model.Band{
 		{

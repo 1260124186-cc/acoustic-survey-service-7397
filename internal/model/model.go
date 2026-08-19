@@ -43,6 +43,7 @@ type Reading struct {
 	DepthM       float64   `json:"depth_m"`
 	NormalizedDB float64   `json:"normalized_db"`
 	QualityScore int       `json:"quality_score"`
+	Usable       bool      `json:"usable"`
 	CapturedAt   time.Time `json:"captured_at"`
 }
 
