@@ -132,6 +132,20 @@ func ValidateReading(input ReadingInput) error {
 	return nil
 }
 
+func ValidateReadingWindow(capturedAt time.Time, activatedAt *time.Time, closedAt *time.Time) error {
+	if activatedAt == nil || capturedAt.Before(*activatedAt) {
+		return NewError("invalid_reading_time", "reading was captured before survey activation")
+	}
+	if closedAt != nil && capturedAt.After(*closedAt) {
+		return NewError("invalid_reading_time", "reading was captured after survey closure")
+	}
+	return nil
+}
+
+func IsReadingWithinWindow(capturedAt time.Time, activatedAt *time.Time, closedAt *time.Time) bool {
+	return ValidateReadingWindow(capturedAt, activatedAt, closedAt) == nil
+}
+
 func Round(value float64, places int) float64 {
 	factor := math.Pow10(places)
 	return math.Round(value*factor) / factor

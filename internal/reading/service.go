@@ -39,6 +39,9 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	if input.CapturedAt != nil {
 		captured = input.CapturedAt.UTC()
 	}
+	if err := model.ValidateReadingWindow(captured, parent.ActivatedAt, parent.ClosedAt); err != nil {
+		return model.Reading{}, err
+	}
 	prior := latest(s.store.Readings(surveyID))
 	value := model.Reading{
 		ID:           fmt.Sprintf("%s-%03d", surveyID, parent.ReadingCount+1),

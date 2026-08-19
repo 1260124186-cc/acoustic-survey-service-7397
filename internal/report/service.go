@@ -22,20 +22,26 @@ func (s *Service) Summary(store *survey.Store, alerts *alert.Service, surveyID s
 		return model.Summary{}, err
 	}
 	values := store.Readings(surveyID)
+	eligible := make([]model.Reading, 0, len(values))
+	for _, value := range values {
+		if model.IsReadingWithinWindow(value.CapturedAt, parent.ActivatedAt, parent.ClosedAt) {
+			eligible = append(eligible, value)
+		}
+	}
 	summary := model.Summary{
 		SurveyID:      parent.ID,
 		State:         parent.State,
-		TotalReadings: len(values),
+		TotalReadings: len(eligible),
 		OpenAlerts:    alerts.OpenCount(surveyID),
 		BandCounts:    make(map[string]int),
 	}
-	if len(values) == 0 {
+	if len(eligible) == 0 {
 		return summary, nil
 	}
-	minimumDepth := values[0].DepthM
-	maximumDepth := values[0].DepthM
+	minimumDepth := eligible[0].DepthM
+	maximumDepth := eligible[0].DepthM
 	normalizedTotal := 0.0
-	for _, value := range values {
+	for _, value := range eligible {
 		if value.DepthM < minimumDepth {
 			minimumDepth = value.DepthM
 		}

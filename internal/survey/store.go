@@ -70,6 +70,9 @@ func (s *Store) AppendReading(value model.Reading) error {
 	if !exists {
 		return model.NewError("not_found", "survey %q was not found", value.SurveyID)
 	}
+	if err := model.ValidateReadingWindow(value.CapturedAt, survey.ActivatedAt, survey.ClosedAt); err != nil {
+		return err
+	}
 	s.readings[value.SurveyID] = append(s.readings[value.SurveyID], value)
 	survey.ReadingCount = len(s.readings[value.SurveyID])
 	s.surveys[value.SurveyID] = survey
