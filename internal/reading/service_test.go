@@ -1,6 +1,7 @@
 package reading
 
 import (
+	"math"
 	"testing"
 
 	"example.com/acoustic-survey-service/internal/alert"
@@ -26,5 +27,21 @@ func TestOutOfRangeReadingIsNotUsable(t *testing.T) {
 	}
 	if IsUsable(value) {
 		t.Fatalf("quality=%d, wanted unusable", value.QualityScore)
+	}
+}
+
+func TestRejectsNonFiniteEchoLevel(t *testing.T) {
+	bands := catalog.NewDefault()
+	store := survey.NewStore()
+	surveys := survey.NewService(store, bands)
+	created, err := surveys.Create("finite-line", "bay", "coastal-38khz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = surveys.Activate(created.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = NewService(bands, alert.NewService(), store).Add(created.ID, model.ReadingInput{FrequencyHz: 38000, EchoDB: math.NaN(), NoiseDB: -70, DepthM: 20}); err == nil {
+		t.Fatal("non-finite echo was accepted")
 	}
 }
