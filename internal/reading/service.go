@@ -73,7 +73,7 @@ func qualityScore(band model.Band, input model.ReadingInput) int {
 }
 
 func IsUsable(value model.Reading) bool {
-	return value.QualityScore >= 70
+	return model.IsUsableReading(value)
 }
 
 func latest(values []model.Reading) *model.Reading {
