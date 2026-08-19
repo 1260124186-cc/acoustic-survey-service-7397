@@ -1,4 +1,4 @@
-# acoustic-survey-service-7397 Docker 交付说明
+# acoustic-survey-service__008 Docker 交付说明
 
 ## 项目概览
 - 声学测线调查服务是一个本地 Go HTTP 服务，用于把近岸声学采样过程中的测线状态、回波读数、质量告警和作业摘要放在同一条可复核流程中。调查技术员建立并启动测线后提交读数；分析员可以在关闭作业后查看聚合摘要；质量复核员可以检查读数告警。
@@ -20,8 +20,8 @@ go run ./cmd/acousticd
 ## Docker 构建
 
 ```bash
-./build_benzhi_docker.sh acoustic-survey-service-7397-benzhi linux/amd64
-docker run --rm -it acoustic-survey-service-7397-benzhi bash
+./build_benzhi_docker.sh acoustic-survey-service__008-benzhi linux/amd64
+docker run --rm -it acoustic-survey-service__008-benzhi bash
 ```
 
 ## 环境
