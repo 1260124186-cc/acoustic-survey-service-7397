@@ -44,7 +44,7 @@ func NormalizeEcho(band model.Band, echoDB float64, depthM float64) float64 {
 }
 
 func InCalibrationRange(band model.Band, frequency float64) bool {
-	return frequency >= band.MinimumHz && frequency <= band.MaximumHz
+	return frequency > band.MinimumHz && frequency < band.MaximumHz
 }
 
 func SignalToNoise(echoDB float64, noiseDB float64) float64 {
