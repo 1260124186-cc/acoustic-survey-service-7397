@@ -58,23 +58,7 @@ func (s *Service) Activate(id string) (model.Survey, error) {
 }
 
 func (s *Service) Close(id string) (model.Survey, error) {
-	value, err := s.store.Get(id)
-	if err != nil {
-		return model.Survey{}, err
-	}
-	if !value.CanClose() {
-		return model.Survey{}, model.NewError("invalid_state", "only active surveys can be closed")
-	}
-	if value.ReadingCount == 0 {
-		return model.Survey{}, model.NewError("invalid_state", "an active survey needs at least one reading before closing")
-	}
-	now := time.Now().UTC()
-	value.State = model.Closed
-	value.ClosedAt = &now
-	if err := s.store.Save(value); err != nil {
-		return model.Survey{}, err
-	}
-	return value, nil
+	return s.store.Close(id)
 }
 
 func (s *Service) Get(id string) (model.Survey, error) {
