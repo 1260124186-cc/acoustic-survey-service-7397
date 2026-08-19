@@ -35,10 +35,7 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	if !ok {
 		return model.Reading{}, model.NewError("invalid_band", "survey band %q is unavailable", parent.Band)
 	}
-	captured := time.Now().UTC()
-	if input.CapturedAt != nil {
-		captured = input.CapturedAt.UTC()
-	}
+	captured := normalizedCaptureTime(input)
 	prior := latest(s.store.Readings(surveyID))
 	value := model.Reading{
 		ID:           fmt.Sprintf("%s-%03d", surveyID, parent.ReadingCount+1),
@@ -56,6 +53,13 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	}
 	s.alerts.Evaluate(band, value, prior)
 	return value, nil
+}
+
+func normalizedCaptureTime(input model.ReadingInput) time.Time {
+	if input.CapturedAt == nil {
+		return time.Now().UTC()
+	}
+	return input.CapturedAt.UTC().Round(0)
 }
 
 func qualityScore(band model.Band, input model.ReadingInput) int {

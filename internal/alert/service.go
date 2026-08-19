@@ -2,6 +2,7 @@ package alert
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 
 	"example.com/acoustic-survey-service/internal/catalog"
@@ -42,6 +43,9 @@ func (s *Service) List(surveyID string) []model.Alert {
 	}
 	result := make([]model.Alert, len(source))
 	copy(result, source)
+	sort.SliceStable(result, func(left int, right int) bool {
+		return result[left].CreatedBefore(result[right])
+	})
 	return result
 }
 

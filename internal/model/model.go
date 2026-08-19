@@ -65,6 +65,10 @@ type Alert struct {
 	Resolved  bool          `json:"resolved"`
 }
 
+func (a Alert) CreatedBefore(other Alert) bool {
+	return a.CreatedAt.Before(other.CreatedAt)
+}
+
 type Band struct {
 	ID          string  `json:"id"`
 	Label       string  `json:"label"`

@@ -129,7 +129,8 @@ func (s *Server) listAlerts(response http.ResponseWriter, request *http.Request)
 		writeError(response, err)
 		return
 	}
-	writeJSON(response, http.StatusOK, map[string]any{"alerts": s.alerts.List(id(request))})
+	alerts := s.alerts.List(id(request))
+	writeJSON(response, http.StatusOK, map[string]any{"alerts": alerts})
 }
 
 func logging(next http.Handler) http.Handler {
