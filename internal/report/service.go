@@ -42,7 +42,7 @@ func (s *Service) Summary(store *survey.Store, alerts *alert.Service, surveyID s
 		if value.DepthM > maximumDepth {
 			maximumDepth = value.DepthM
 		}
-		summary.BandCounts[s.frequencyBand(value.FrequencyHz)]++
+		summary.BandCounts[s.frequencyBand(value.BandID, value.FrequencyHz)]++
 		if reading.IsUsable(value) {
 			summary.ValidReadings++
 			normalizedTotal += value.NormalizedDB
@@ -56,11 +56,6 @@ func (s *Service) Summary(store *survey.Store, alerts *alert.Service, surveyID s
 	return summary, nil
 }
 
-func (s *Service) frequencyBand(frequency float64) string {
-	for _, band := range s.catalog.List() {
-		if catalog.InCalibrationRange(band, frequency) {
-			return band.ID
-		}
-	}
-	return "outside-catalog"
+func (s *Service) frequencyBand(preferredID string, frequency float64) string {
+	return s.catalog.ReadingBand(preferredID, frequency)
 }

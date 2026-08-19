@@ -43,6 +43,7 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	value := model.Reading{
 		ID:           fmt.Sprintf("%s-%03d", surveyID, parent.ReadingCount+1),
 		SurveyID:     surveyID,
+		BandID:       parent.Band,
 		FrequencyHz:  input.FrequencyHz,
 		EchoDB:       input.EchoDB,
 		NoiseDB:      input.NoiseDB,

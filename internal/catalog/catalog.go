@@ -27,6 +27,18 @@ func (c *Catalog) Find(id string) (model.Band, bool) {
 	return value, ok
 }
 
+func (c *Catalog) ReadingBand(preferredID string, frequency float64) string {
+	if preferred, ok := c.Find(preferredID); ok && InCalibrationRange(preferred, frequency) {
+		return preferred.ID
+	}
+	for _, band := range c.List() {
+		if InCalibrationRange(band, frequency) {
+			return band.ID
+		}
+	}
+	return "outside-catalog"
+}
+
 func (c *Catalog) List() []model.Band {
 	result := make([]model.Band, 0, len(c.bands))
 	for _, value := range c.bands {
