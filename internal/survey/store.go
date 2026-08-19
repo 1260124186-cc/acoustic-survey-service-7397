@@ -1,6 +1,7 @@
 package survey
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 
@@ -63,17 +64,28 @@ func (s *Store) List() []model.Survey {
 	return result
 }
 
-func (s *Store) AppendReading(value model.Reading) error {
+func (s *Store) AppendReading(value model.Reading) (model.Reading, *model.Reading, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	survey, exists := s.surveys[value.SurveyID]
+	parent, exists := s.surveys[value.SurveyID]
 	if !exists {
-		return model.NewError("not_found", "survey %q was not found", value.SurveyID)
+		return model.Reading{}, nil, model.NewError("not_found", "survey %q was not found", value.SurveyID)
 	}
-	s.readings[value.SurveyID] = append(s.readings[value.SurveyID], value)
-	survey.ReadingCount = len(s.readings[value.SurveyID])
-	s.surveys[value.SurveyID] = survey
-	return nil
+	if parent.State != model.Active {
+		return model.Reading{}, nil, model.NewError("invalid_state", "readings can only be added to active surveys")
+	}
+	values := s.readings[value.SurveyID]
+	var previous *model.Reading
+	if len(values) > 0 {
+		copy := values[len(values)-1]
+		previous = &copy
+	}
+	value.Sequence = len(values) + 1
+	value.ID = fmt.Sprintf("%s-%03d", value.SurveyID, value.Sequence)
+	s.readings[value.SurveyID] = append(values, value)
+	parent.ReadingCount = value.Sequence
+	s.surveys[value.SurveyID] = parent
+	return value, previous, nil
 }
 
 func (s *Store) Readings(id string) []model.Reading {

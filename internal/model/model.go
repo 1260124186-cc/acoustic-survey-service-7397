@@ -36,6 +36,7 @@ type ReadingInput struct {
 
 type Reading struct {
 	ID           string    `json:"id"`
+	Sequence     int       `json:"sequence"`
 	SurveyID     string    `json:"survey_id"`
 	FrequencyHz  float64   `json:"frequency_hz"`
 	EchoDB       float64   `json:"echo_db"`

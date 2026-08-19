@@ -57,7 +57,7 @@ func (s *Service) OpenCount(surveyID string) int {
 
 func (s *Service) newAlert(reading model.Reading, rule string, severity model.AlertSeverity, message string) model.Alert {
 	return model.Alert{
-		ID:        reading.ID + ":" + rule,
+		ID:        fmt.Sprintf("%s:%03d:%s", reading.SurveyID, reading.Sequence, rule),
 		SurveyID:  reading.SurveyID,
 		ReadingID: reading.ID,
 		Rule:      rule,
