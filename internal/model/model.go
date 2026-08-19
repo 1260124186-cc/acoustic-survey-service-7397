@@ -16,14 +16,15 @@ const (
 )
 
 type Survey struct {
-	ID           string      `json:"id"`
-	Area         string      `json:"area"`
-	Band         string      `json:"band"`
-	State        SurveyState `json:"state"`
-	CreatedAt    time.Time   `json:"created_at"`
-	ActivatedAt  *time.Time  `json:"activated_at,omitempty"`
-	ClosedAt     *time.Time  `json:"closed_at,omitempty"`
-	ReadingCount int         `json:"reading_count"`
+	ID                 string      `json:"id"`
+	Area               string      `json:"area"`
+	Band               string      `json:"band"`
+	State              SurveyState `json:"state"`
+	CreatedAt          time.Time   `json:"created_at"`
+	ActivatedAt        *time.Time  `json:"activated_at,omitempty"`
+	ClosedAt           *time.Time  `json:"closed_at,omitempty"`
+	ReadingCount       int         `json:"reading_count"`
+	UsableReadingCount int         `json:"usable_reading_count"`
 }
 
 type ReadingInput struct {
@@ -132,14 +133,6 @@ func ValidateReading(input ReadingInput) error {
 	return nil
 }
 
-// UsableQualityThreshold 是读数被判定为可用的最低质量分。
-const UsableQualityThreshold = 70
-
-// IsUsableReading 判断读数是否可用于结束测线与摘要统计。
-func IsUsableReading(value Reading) bool {
-	return value.QualityScore >= UsableQualityThreshold
-}
-
 func Round(value float64, places int) float64 {
 	factor := math.Pow10(places)
 	return math.Round(value*factor) / factor
@@ -153,4 +146,8 @@ func ClampInt(value int, minimum int, maximum int) int {
 		return maximum
 	}
 	return value
+}
+
+func IsUsableReading(value Reading) bool {
+	return value.QualityScore >= 70
 }

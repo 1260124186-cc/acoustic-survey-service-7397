@@ -72,6 +72,9 @@ func (s *Store) AppendReading(value model.Reading) error {
 	}
 	s.readings[value.SurveyID] = append(s.readings[value.SurveyID], value)
 	survey.ReadingCount = len(s.readings[value.SurveyID])
+	if model.IsUsableReading(value) {
+		survey.UsableReadingCount++
+	}
 	s.surveys[value.SurveyID] = survey
 	return nil
 }
