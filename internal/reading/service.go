@@ -39,6 +39,14 @@ func (s *Service) Add(surveyID string, input model.ReadingInput) (model.Reading,
 	if input.CapturedAt != nil {
 		captured = input.CapturedAt.UTC()
 	}
+	// 读数采样时间必须落在测线采样窗口内：不早于启动时间、不晚于结束时间。
+	// 设备断链补传的缓存读数若早于启动时间则属于上一条测线的残留，应被拒绝。
+	if parent.ActivatedAt != nil && captured.Before(*parent.ActivatedAt) {
+		return model.Reading{}, model.NewError("invalid_reading", "reading was captured before the survey started")
+	}
+	if parent.ClosedAt != nil && captured.After(*parent.ClosedAt) {
+		return model.Reading{}, model.NewError("invalid_reading", "reading was captured after the survey ended")
+	}
 	prior := latest(s.store.Readings(surveyID))
 	value := model.Reading{
 		ID:           fmt.Sprintf("%s-%03d", surveyID, parent.ReadingCount+1),
