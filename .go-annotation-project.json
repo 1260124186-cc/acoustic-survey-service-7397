@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "name": "acoustic-survey-service",
+  "summary": "面向近岸声学调查作业的本地 HTTP 服务，协调测线状态、声学读数质量与作业摘要。",
+  "user_roles": [
+    "调查技术员",
+    "声学分析员",
+    "质量复核员"
+  ],
+  "entities": [
+    "survey",
+    "acoustic-reading",
+    "quality-alert",
+    "survey-summary"
+  ],
+  "workflows": [
+    {
+      "id": "create-survey",
+      "name": "建立调查测线",
+      "actor": "调查技术员",
+      "entry": "POST /v1/surveys",
+      "steps": [
+        "校验测线标识、海区与目标频段",
+        "保存草稿测线并允许启动采样"
+      ],
+      "success": "返回草稿测线",
+      "failure": "重复标识或未知频段返回可识别错误",
+      "verification": "创建后查询测线状态和目标频段"
+    },
+    {
+      "id": "record-reading",
+      "name": "记录声学读数",
+      "actor": "调查技术员",
+      "entry": "POST /v1/surveys/{id}/readings",
+      "steps": [
+        "校验活动状态和读数边界",
+        "标准化回波强度并生成质量告警"
+      ],
+      "success": "返回带质量评分的读数",
+      "failure": "结束测线或非法深度返回可识别错误",
+      "verification": "提交读数后查询告警和摘要"
+    },
+    {
+      "id": "close-survey",
+      "name": "结束作业并复核摘要",
+      "actor": "声学分析员",
+      "entry": "POST /v1/surveys/{id}/close",
+      "steps": [
+        "确认活动测线已有读数",
+        "锁定测线并计算聚合摘要"
+      ],
+      "success": "返回关闭状态与摘要",
+      "failure": "空测线不能关闭",
+      "verification": "结束后读取摘要和告警数量"
+    }
+  ],
+  "module_plan": [
+    {
+      "package": "internal/survey",
+      "workflow_ids": [
+        "create-survey",
+        "record-reading",
+        "close-survey"
+      ]
+    },
+    {
+      "package": "internal/reading",
+      "workflow_ids": [
+        "record-reading",
+        "close-survey"
+      ]
+    },
+    {
+      "package": "internal/report",
+      "workflow_ids": [
+        "close-survey"
+      ]
+    },
+    {
+      "package": "internal/api",
+      "workflow_ids": [
+        "create-survey",
+        "record-reading",
+        "close-survey"
+      ]
+    }
+  ],
+  "interfaces": [
+    {
+      "name": "survey lifecycle HTTP API",
+      "workflow_ids": [
+        "create-survey",
+        "close-survey"
+      ]
+    },
+    {
+      "name": "acoustic reading HTTP API",
+      "workflow_ids": [
+        "record-reading"
+      ]
+    },
+    {
+      "name": "survey summary HTTP API",
+      "workflow_ids": [
+        "close-survey"
+      ]
+    }
+  ]
+}
